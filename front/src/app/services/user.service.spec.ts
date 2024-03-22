@@ -1,4 +1,3 @@
-import { HttpClientModule } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { expect } from '@jest/globals';
@@ -14,7 +13,6 @@ describe('UserService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports:[
-        // HttpClientModule
         HttpClientTestingModule
       ]
     });
@@ -63,10 +61,4 @@ describe('UserService', () => {
     expect(request.request.method).toBe('DELETE');
     request.flush(mockResponse);
   });
-
-  // it('should return a user', () => {
-  //   const user = service.getById("0");
-  //   expect(user).not.toBeNull();
-  //   expect(user).toBeInstanceOf(Observable<User>);
-  // })
 });
