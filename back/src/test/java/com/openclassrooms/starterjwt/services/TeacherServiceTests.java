@@ -45,9 +45,9 @@ class TeacherServiceTests {
         List<Teacher> result = teacherService.findAll();
 
         // Assertions
-        Assertions.assertEquals(teachers.size(), result.size());
-        Assertions.assertEquals(teachers.get(0).getFirstName(), result.get(0).getFirstName());
-        Assertions.assertEquals(teachers.get(1).getLastName(), result.get(1).getLastName());
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals("John", result.get(0).getFirstName());
+        Assertions.assertEquals("Smith", result.get(1).getLastName());
     }
 
     @Test
@@ -64,7 +64,7 @@ class TeacherServiceTests {
 
         // Assertions
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(teacher.getLastName(), result.getLastName());
+        Assertions.assertEquals("Doe", result.getLastName());
     }
 
     @Test

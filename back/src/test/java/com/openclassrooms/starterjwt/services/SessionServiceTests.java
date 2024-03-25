@@ -67,9 +67,9 @@ class SessionServiceTests {
         List<Session> result = sessionService.findAll();
 
         // Assertions
-        Assertions.assertEquals(sessions.size(), result.size());
-        Assertions.assertEquals(sessions.get(0).getName(), result.get(0).getName());
-        Assertions.assertEquals(sessions.get(1).getDescription(), result.get(1).getDescription());
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals("Test Session 1", result.get(0).getName());
+        Assertions.assertEquals("Description 2", result.get(1).getDescription());
     }
 
     @Test
@@ -86,7 +86,7 @@ class SessionServiceTests {
 
         // Assertions
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(session.getDescription(), result.getDescription());
+        Assertions.assertEquals("Description", result.getDescription());
     }
 
     @Test

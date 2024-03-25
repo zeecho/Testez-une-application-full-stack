@@ -59,7 +59,7 @@ class UserServiceTests {
 
         // Assertions
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(user.getEmail(), result.getEmail());
+        Assertions.assertEquals("test@example.com", result.getEmail());
     }
 
     @Test
