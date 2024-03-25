@@ -1,4 +1,4 @@
-package com.openclassrooms.starterjwt;
+package com.openclassrooms.starterjwt.services;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,6 +36,7 @@ class SessionServiceTests {
     }
 
     @Test
+    @DisplayName("Create a new session (checkink it's not null and has the right name")
     public void testCreate() {
         // Mock data
         Session session = new Session(1L, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
@@ -51,6 +53,7 @@ class SessionServiceTests {
     }
     
     @Test
+    @DisplayName("Getting all sessions (comparing size of array and some data)")
     public void testFindAll() {
         // Mock data
         List<Session> sessions = new ArrayList<>();
@@ -70,6 +73,7 @@ class SessionServiceTests {
     }
 
     @Test
+    @DisplayName("Retriving an existing Session through the service")
     public void testGetById_ExistingId_ReturnsSession() {
         // Mock data
         Session session = new Session(1L, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
@@ -86,6 +90,7 @@ class SessionServiceTests {
     }
 
     @Test
+    @DisplayName("Checking we get NULL when trying to retrieve a non-existing session")
     public void testGetById_NonExistingId_ReturnsNull() {
         // Mock the repository behavior
         Mockito.when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
@@ -96,5 +101,4 @@ class SessionServiceTests {
         // Assertions
         Assertions.assertNull(result);
     }
-
 }

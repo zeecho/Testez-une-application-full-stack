@@ -1,4 +1,4 @@
-package com.openclassrooms.starterjwt;
+package com.openclassrooms.starterjwt.services;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,6 +31,7 @@ class TeacherServiceTests {
     }
     
     @Test
+    @DisplayName("Getting all teachers (comparing size of array and some data)")
     public void testFindAll() {
         // Mock data
         List<Teacher> teachers = new ArrayList<>();
@@ -49,6 +51,7 @@ class TeacherServiceTests {
     }
 
     @Test
+    @DisplayName("Retriving an existing Teacher through the service")
     public void testFindById_ExistingId_ReturnsTeacher() {
         // Mock data
         Teacher teacher = new Teacher(1L, "Doe", "John", LocalDateTime.now(), LocalDateTime.now());
@@ -65,6 +68,7 @@ class TeacherServiceTests {
     }
 
     @Test
+    @DisplayName("Checking we get NULL when trying to retrieve a non-existing teacher")
     public void testFindById_NonExistingId_ReturnsNull() {
         // Mock the repository behavior
         Mockito.when(teacherRepository.findById(999L)).thenReturn(Optional.empty());
