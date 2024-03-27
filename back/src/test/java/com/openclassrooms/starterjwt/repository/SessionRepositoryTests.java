@@ -5,29 +5,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.openclassrooms.starterjwt.models.Session;
-import com.openclassrooms.starterjwt.services.SessionService;
 
+@ExtendWith(MockitoExtension.class)
 class SessionRepositoryTests {
     @Mock
     private SessionRepository sessionRepository;
-
-    @InjectMocks
-    private SessionService sessionService;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
     
     @Test
     @DisplayName("Get an existing session")
@@ -35,12 +27,12 @@ class SessionRepositoryTests {
         Long id = 1L;
         Session session = new Session(id, "Session 1", new Date(), "Description", null, null, LocalDateTime.now(), LocalDateTime.now());
 
-        Mockito.when(sessionRepository.findById(id)).thenReturn(Optional.of(session));
+        when(sessionRepository.findById(id)).thenReturn(Optional.of(session));
 
         Optional<Session> result = sessionRepository.findById(id);
 
-        Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(session.getId(), result.get().getId());
+        assertThat(result).isPresent();
+        assertThat(session.getId()).isEqualTo(result.get().getId());
     }
 
     @Test
@@ -48,11 +40,11 @@ class SessionRepositoryTests {
     public void testFindById_NonExistingId_ReturnsEmpty() {
         Long id = 999L;
 
-        Mockito.when(sessionRepository.findById(id)).thenReturn(Optional.empty());
+        when(sessionRepository.findById(id)).thenReturn(Optional.empty());
 
         Optional<Session> result = sessionRepository.findById(id);
-
-        Assertions.assertTrue(result.isEmpty());
+        
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -60,10 +52,10 @@ class SessionRepositoryTests {
     public void testFindAll_SessionsExist_ReturnsAllSessions() {
         Session session1 = new Session(1L, "Session 1", new Date(), "Description", null, null, LocalDateTime.now(), LocalDateTime.now());
         Session session2 = new Session(2L, "Session 2", new Date(), "Description", null, null, LocalDateTime.now(), LocalDateTime.now());
-        Mockito.when(sessionRepository.findAll()).thenReturn(List.of(session1, session2));
+        when(sessionRepository.findAll()).thenReturn(List.of(session1, session2));
 
         List<Session> result = sessionRepository.findAll();
-
-        Assertions.assertEquals(2, result.size());
+        
+        assertThat(result).hasSize(2);
     }
 }

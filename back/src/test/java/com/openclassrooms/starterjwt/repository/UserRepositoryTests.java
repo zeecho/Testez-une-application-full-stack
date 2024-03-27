@@ -3,29 +3,21 @@ package com.openclassrooms.starterjwt.repository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.openclassrooms.starterjwt.models.User;
-import com.openclassrooms.starterjwt.services.UserService;
 
+@ExtendWith(MockitoExtension.class)
 class UserRepositoryTests {
     @Mock
     private UserRepository userRepository;
-
-    @InjectMocks
-    private UserService userService;
-
-    @BeforeEach
-    public void setUp() {
-    	MockitoAnnotations.openMocks(this);        
-    }
     
     @Test
     @DisplayName("Get an existing user using their email")
@@ -33,12 +25,12 @@ class UserRepositoryTests {
         String email = "test@example.com";
         User user = new User(1L, email, "Doe", "John", "password", false, LocalDateTime.now(), LocalDateTime.now());
 
-        Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        
         Optional<User> result = userRepository.findByEmail(email);
 
-        Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(user.getEmail(), result.get().getEmail());
+        assertThat(result).isPresent();
+        assertThat(user.getEmail()).isEqualTo(result.get().getEmail());
     }
     
 
@@ -47,11 +39,11 @@ class UserRepositoryTests {
     public void testFindByEmail_NonExistingEmail_ReturnsEmpty() {
         String email = "nonexisting@example.com";
 
-        Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        
         Optional<User> result = userRepository.findByEmail(email);
 
-        Assertions.assertTrue(result.isEmpty());
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -59,11 +51,11 @@ class UserRepositoryTests {
     public void testExistsByEmail_ExistingEmail_ReturnsTrue() {
         String email = "test@example.com";
 
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(true);
-
+        when(userRepository.existsByEmail(email)).thenReturn(true);
+        
         boolean result = userRepository.existsByEmail(email);
 
-        Assertions.assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -71,10 +63,10 @@ class UserRepositoryTests {
     public void testExistsByEmail_NonExistingEmail_ReturnsFalse() {
         String email = "nonexisting@example.com";
 
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(false);
-
+        when(userRepository.existsByEmail(email)).thenReturn(false);
+        
         boolean result = userRepository.existsByEmail(email);
 
-        Assertions.assertFalse(result);
+        assertThat(result).isFalse();
     }
 }

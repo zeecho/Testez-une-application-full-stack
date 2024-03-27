@@ -4,29 +4,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.openclassrooms.starterjwt.models.Teacher;
-import com.openclassrooms.starterjwt.services.TeacherService;
 
+@ExtendWith(MockitoExtension.class)
 class TeacherRepositoryTests {    
 	@Mock
     private TeacherRepository teacherRepository;
-
-    @InjectMocks
-    private TeacherService teacherService;
-
-    @BeforeEach
-    public void setUp() {
-    	MockitoAnnotations.openMocks(this);        
-    }
     
     @Test
     @DisplayName("Get an existing teacher")
@@ -34,12 +27,12 @@ class TeacherRepositoryTests {
         Long id = 1L;
         Teacher teacher = new Teacher(id, "Doe", "John", LocalDateTime.now(), LocalDateTime.now());
 
-        Mockito.when(teacherRepository.findById(id)).thenReturn(Optional.of(teacher));
+        when(teacherRepository.findById(id)).thenReturn(Optional.of(teacher));
 
         Optional<Teacher> result = teacherRepository.findById(id);
 
-        Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(teacher.getId(), result.get().getId());
+        assertThat(result).isPresent();
+        assertThat(teacher.getId()).isEqualTo(result.get().getId());
     }
     
     @Test
@@ -47,11 +40,11 @@ class TeacherRepositoryTests {
     public void testFindById_NonExistingId_ReturnsEmpty() {
         Long id = 999L;
 
-        Mockito.when(teacherRepository.findById(id)).thenReturn(Optional.empty());
+        when(teacherRepository.findById(id)).thenReturn(Optional.empty());
 
         Optional<Teacher> result = teacherRepository.findById(id);
-
-        Assertions.assertTrue(result.isEmpty());
+        
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -63,8 +56,8 @@ class TeacherRepositoryTests {
 
         List<Teacher> result = teacherRepository.findAll();
 
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("John", result.get(0).getFirstName());
-        Assertions.assertEquals("Smith", result.get(1).getLastName());
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getFirstName()).isEqualTo("John");
+        assertThat(result.get(1).getLastName()).isEqualTo("Smith");
     }
 }
