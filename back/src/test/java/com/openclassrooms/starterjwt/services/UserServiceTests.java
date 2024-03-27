@@ -6,29 +6,29 @@ import static org.mockito.Mockito.verify;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.repository.UserRepository;
-import com.openclassrooms.starterjwt.services.UserService;
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceTests {
-    @InjectMocks
     private UserService userService;
 
     @Mock
     private UserRepository userRepository;
     
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void init() {
+    	userService = new UserService(userRepository);
     }
 
     @Test
@@ -52,14 +52,14 @@ class UserServiceTests {
         User user = new User(userId, "test@example.com", "Doe", "John", "password", false, LocalDateTime.now(), LocalDateTime.now());
 
         // Mock the repository behavior
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // Call the service method
         User result = userService.findById(userId);
 
         // Assertions
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("test@example.com", result.getEmail());
+        assertThat(result).isNotNull();
+        assertThat("test@example.com").isEqualTo(result.getEmail());
     }
 
     @Test
@@ -69,12 +69,12 @@ class UserServiceTests {
         Long userId = 999L;
 
         // Mock the repository behavior
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // Call the service method
         User result = userService.findById(userId);
 
         // Assertions
-        Assertions.assertNull(result);
+        assertThat(result).isNull();
     }
 }

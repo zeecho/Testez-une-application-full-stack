@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,6 +28,7 @@ class UserRepositoryTests {
     }
     
     @Test
+    @DisplayName("Get an existing user using their email")
     public void testFindByEmail_ExistingEmail_ReturnsUser() {
         String email = "test@example.com";
         User user = new User(1L, email, "Doe", "John", "password", false, LocalDateTime.now(), LocalDateTime.now());
@@ -41,6 +43,7 @@ class UserRepositoryTests {
     
 
     @Test
+    @DisplayName("Get a non existing user using their email (should return empty)")
     public void testFindByEmail_NonExistingEmail_ReturnsEmpty() {
         String email = "nonexisting@example.com";
 
@@ -52,6 +55,7 @@ class UserRepositoryTests {
     }
 
     @Test
+    @DisplayName("Check if an email already exists (true)")
     public void testExistsByEmail_ExistingEmail_ReturnsTrue() {
         String email = "test@example.com";
 
@@ -63,6 +67,7 @@ class UserRepositoryTests {
     }
 
     @Test
+    @DisplayName("Check if an email already exists (false)")
     public void testExistsByEmail_NonExistingEmail_ReturnsFalse() {
         String email = "nonexisting@example.com";
 

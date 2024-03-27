@@ -6,20 +6,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.repository.SessionRepository;
 import com.openclassrooms.starterjwt.repository.UserRepository;
-import com.openclassrooms.starterjwt.services.SessionService;
 
+@ExtendWith(MockitoExtension.class)
 class SessionServiceTests {
     @Mock
     private SessionRepository sessionRepository;
@@ -27,12 +28,11 @@ class SessionServiceTests {
     @Mock
     private UserRepository userRepository;
 
-    @InjectMocks
     private SessionService sessionService;
 
     @BeforeEach
-    public void setUp() {
-    	MockitoAnnotations.openMocks(this);        
+    public void init() {
+        sessionService = new SessionService(sessionRepository, userRepository);
     }
 
     @Test
@@ -42,14 +42,14 @@ class SessionServiceTests {
         Session session = new Session(1L, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
 
         // Mock the repository behavior
-        Mockito.when(sessionRepository.save(Mockito.any(Session.class))).thenReturn(session);
+        when(sessionRepository.save(session)).thenReturn(session);
 
         // Call the service method
         Session result = sessionService.create(session);
 
         // Assertions
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Test Session", result.getName());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("Test Session");
     }
     
     @Test
@@ -61,44 +61,45 @@ class SessionServiceTests {
         sessions.add(new Session(2L, "Test Session 2", new Date(), "Description 2", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now()));
 
         // Mock the repository behavior
-        Mockito.when(sessionRepository.findAll()).thenReturn(sessions);
+        when(sessionRepository.findAll()).thenReturn(sessions);
 
         // Call the service method
         List<Session> result = sessionService.findAll();
 
         // Assertions
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("Test Session 1", result.get(0).getName());
-        Assertions.assertEquals("Description 2", result.get(1).getDescription());
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.get(0).getName()).isEqualTo("Test Session 1");
+        assertThat(result.get(1).getDescription()).isEqualTo("Description 2");
     }
 
     @Test
     @DisplayName("Retriving an existing Session through the service")
     public void testGetById_ExistingId_ReturnsSession() {
         // Mock data
-        Session session = new Session(1L, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
+        Long sessionId = 1L;
+        Session session = new Session(sessionId, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
 
         // Mock the repository behavior
-        Mockito.when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
-
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        
         // Call the service method
-        Session result = sessionService.getById(1L);
+        Session result = sessionService.getById(sessionId);
 
         // Assertions
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Description", result.getDescription());
+        assertThat(result).isNotNull();
+        assertThat(result.getDescription()).isEqualTo("Description");
     }
 
     @Test
     @DisplayName("Checking we get NULL when trying to retrieve a non-existing session")
     public void testGetById_NonExistingId_ReturnsNull() {
         // Mock the repository behavior
-        Mockito.when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
-
+        when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
+        
         // Call the service method
         Session result = sessionService.getById(999L);
 
         // Assertions
-        Assertions.assertNull(result);
+        assertThat(result).isNull();
     }
 }
