@@ -1,9 +1,8 @@
 package com.openclassrooms.starterjwt.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.starterjwt.controllers.SessionController;
 import com.openclassrooms.starterjwt.dto.SessionDto;
-import com.openclassrooms.starterjwt.mapper.SessionMapperImpl;
+import com.openclassrooms.starterjwt.mapper.SessionMapper;
 import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.models.User;
@@ -14,188 +13,200 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 @ExtendWith(MockitoExtension.class)
 class SessionControllerTests {
-    private MockMvc mvc;
-
     @Mock
     private SessionService sessionService;
     
     @Mock
     private TeacherService teacherService;
 
-    private SessionMapperImpl sessionMapper = new SessionMapperImpl();
-
-    private JacksonTester<SessionDto> jsonSession;
+    @Mock
+    private SessionMapper sessionMapper;
+    
+    @InjectMocks
+    private SessionController sessionController;
+    
+    private Session session;
     
     @BeforeEach
     void init() {
-        JacksonTester.initFields(this, new ObjectMapper());
-        mvc = MockMvcBuilders.standaloneSetup(new SessionController(sessionService, sessionMapper)).build();
-    }
+    	List<User> users = new ArrayList<>();
+    	users.add(new User(1L, "test@example.com", "John", "Doe", "encodedPassword", false, LocalDateTime.now(), LocalDateTime.now()));
+        users.add(new User(2L, "test2@example.com", "Yann", "Stivel", "encodedPassword", true, LocalDateTime.now(), LocalDateTime.now()));
+    	
+        Teacher teacher = new Teacher(1L, "John", "Doe", LocalDateTime.now(), LocalDateTime.now());
 
+    	this.session = new Session(1L, "Session 1", new Date(), "Description for session 1", teacher, users, LocalDateTime.now(), LocalDateTime.now());
+    }
+    
     @Test
     @DisplayName("Get a specific session successfully")
     void testFindById_Success() throws Exception {
-        Session session = new Session();
-        session.setId(1L);
-        session.setName("Session 1");
-        session.setDate(new Date());
-        session.setDescription("Description for session 1");
+    	Session session = this.session;
+        when(sessionService.getById(anyLong())).thenReturn(session);
+        when(sessionMapper.toDto(any(Session.class))).thenReturn(new SessionDto());
 
-        when(sessionService.getById(1L)).thenReturn(session);
+        ResponseEntity<?> response = sessionController.findById("1");
 
-        MockHttpServletResponse response = mvc.perform(get("/api/session/1")).andReturn().getResponse();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        SessionDto expectedDto = sessionMapper.toDto(session);
-        String expectedJson = new ObjectMapper().writeValueAsString(expectedDto);
-        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(SessionDto.class);
     }
 
     @Test
-    @DisplayName("Get a specific session (not found)")
-    void testFindById_NotFound() throws Exception {
-        when(sessionService.getById(1L)).thenReturn(null);
+    @DisplayName("Get a specific session (null id)")
+    void testFindById_NotFound() {
+        when(sessionService.getById(anyLong())).thenReturn(null);
 
-        MockHttpServletResponse response = mvc.perform(get("/api/session/1")).andReturn().getResponse();
+        ResponseEntity<?> response = sessionController.findById("1");
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNull();
     }
 
+    @Test
+    @DisplayName("Get a specific session (invalid id)")
+    void testFindById_InvalidId() {
+        ResponseEntity<?> response = sessionController.findById("invalid");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
+    }
+    
     @Test
     @DisplayName("Get all sessions with success")
-    void testFindAll_Success() throws Exception {
-        Session session1 = new Session();
-        session1.setId(1L);
-        session1.setName("Session 1");        
-        session1.setDate(new Date());
-        session1.setDescription("Description for session 1");
-
-        Session session2 = new Session();
-        session2.setId(2L);
-        session2.setName("Session 2");
-        session2.setDate(new Date());
-        session2.setDescription("Description for session 2");
-
-        List<Session> sessions = Arrays.asList(session1, session2);
+    void testFindAll_Success() {
+        List<Session> sessions = new ArrayList<>();
+        sessions.add(session);
         when(sessionService.findAll()).thenReturn(sessions);
+        when(sessionMapper.toDto(anyList())).thenReturn(new ArrayList<>());
 
-        MockHttpServletResponse response = mvc.perform(get("/api/session")).andReturn().getResponse();
+        ResponseEntity<?> response = sessionController.findAll();
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(List.class);
+    }
+    
+    @Test
+    @DisplayName("Create a session with success")
+    void testCreateSession_Success() {
+        SessionDto sessionDto = new SessionDto();
+        Session session = this.session;
+        when(sessionMapper.toEntity(any(SessionDto.class))).thenReturn(session);
+        when(sessionService.create(any(Session.class))).thenReturn(session);
+        when(sessionMapper.toDto(any(Session.class))).thenReturn(sessionDto);
 
-        List<SessionDto> expectedDtoList = sessionMapper.toDto(sessions);
-        String expectedJson = new ObjectMapper().writeValueAsString(expectedDtoList);
-        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
+        ResponseEntity<?> response = sessionController.create(sessionDto);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(SessionDto.class);
+    }
+    
+    @Test
+    @DisplayName("Update a session with success")
+    void testUpdate_Success() {
+        SessionDto sessionDto = new SessionDto();
+        when(sessionMapper.toEntity(any(SessionDto.class))).thenReturn(session);
+        when(sessionService.update(anyLong(), any(Session.class))).thenReturn(session);
+        when(sessionMapper.toDto(any(Session.class))).thenReturn(sessionDto);
+
+        ResponseEntity<?> response = sessionController.update("1", sessionDto);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(SessionDto.class);    
     }
 
-//  TODO this doesn't work  
-//    @Test
-//    void testCreateSession_Success() throws Exception {
-//        Teacher teacher = new Teacher();
-//        teacher.setId(1L);
-//        teacher.setFirstName("John");
-//        teacher.setLastName("Doe");
-////        
-////        Session session = new Session();
-////        session.setId(1L);
-////        session.setName("New Session");
-////        session.setDate(new Date());
-////        session.setDescription("Description for the new session");
-////        session.setTeacher(teacher);
-//        
-//        SessionDto sessionDto = new SessionDto();
-//        sessionDto.setId(1L);
-//        sessionDto.setName("New Session");
-//        sessionDto.setDescription("Description for the new session");
-//        sessionDto.setDate(new Date());
-//        sessionDto.setTeacher_id(1L);
-////        sessionDto.setCreatedAt(LocalDateTime.now());
-//        when(teacherService.findById(1L)).thenReturn(teacher);
-////        when(sessionService.create(any())).thenReturn(session);
-//        // Mock the service method to return a session when called with any session DTO
-//        when(sessionService.create(any())).thenAnswer(invocation -> {
-//            SessionDto dtoArgument = invocation.getArgument(0);
-//            Session createdSession = new Session();
-//            createdSession.setId(dtoArgument.getId());
-//            createdSession.setName(dtoArgument.getName());
-//            createdSession.setDate(dtoArgument.getDate());
-//            createdSession.setDescription(dtoArgument.getDescription());
-//            createdSession.setTeacher(teacherService.findById(dtoArgument.getTeacher_id()));
-//            return createdSession;
-//        });
-////        SessionDto sessionDto = sessionMapper.toDto(session);
-//        
-//
-//        MockHttpServletResponse response = mvc.perform(post("/api/session")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(new ObjectMapper().writeValueAsString(sessionDto)))
-//                .andReturn().getResponse();
-////        MockHttpServletResponse response = mvc.perform(post("/api/session")
-////        		.contentType(MediaType.APPLICATION_JSON)
-////                .content(
-////                        jsonSession
-////                        .write(sessionDto)
-////                        .getJson()
-////                ))
-////                .andReturn().getResponse();
-//
-////        verify(sessionService).create(any());
-//        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-////        String expectedJson = new ObjectMapper().writeValueAsString(sessionMapper.toDto(session));
-////        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
-//    }
-    
-//    TODO this doesn't work  
-//    @Test
-//    void testUpdateSession_Success() throws Exception {
-//        Session session = new Session();
-//        session.setId(1L);
-//        session.setName("Session 1");
-//        session.setDate(new Date());
-//        session.setDescription("Description for session 1");
-//
-//        when(sessionService.update(eq(1L), any())).thenReturn(session);
-//
-//        MockHttpServletResponse response = mvc.perform(put("/api/session/1")
-//                .contentType("application/json")
-//                .content(new ObjectMapper().writeValueAsString(sessionMapper.toDto(session))))
-//                .andReturn().getResponse();
-//
-//        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-//        String expectedJson = new ObjectMapper().writeValueAsString(sessionMapper.toDto(session));
-//        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
-//    }
+    @Test
+    @DisplayName("Try to update a session with an invalid id")
+    void testUpdate_InvalidId() {
+        ResponseEntity<?> response = sessionController.update("invalid", new SessionDto());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
+    }
 
     @Test
-    @DisplayName("Try to update a session, failing")
-    void testUpdateSession_InvalidId() throws Exception {
-        MockHttpServletResponse response = mvc.perform(put("/api/session/abc")
-                .contentType("application/json")
-                .content(new ObjectMapper().writeValueAsString(new SessionDto())))
-                .andReturn().getResponse();
+    @DisplayName("Save a session with success")
+    void testSave_Success() {
+        when(sessionService.getById(anyLong())).thenReturn(session);
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        ResponseEntity<?> response = sessionController.save("1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Try to save a session (null id)")
+    void testSave_NotFound() {
+        when(sessionService.getById(anyLong())).thenReturn(null);
+
+        ResponseEntity<?> response = sessionController.save("1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Try to save a session (invalid id)")
+    void testSave_InvalidId() {
+        ResponseEntity<?> response = sessionController.save("invalid");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Participate in session with success")
+    void testParticipate_Success() {
+        ResponseEntity<?> response = sessionController.participate("1", "1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Participate in session (invalid id)")
+    void testParticipate_InvalidId() {
+        ResponseEntity<?> response = sessionController.participate("invalid", "1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Unparticipate in session with success")
+    void testNoLongerParticipate_Success() {
+        ResponseEntity<?> response = sessionController.noLongerParticipate("1", "1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Unparticipate in session (invalid id)")
+    void testNoLongerParticipate_InvalidId() {
+        ResponseEntity<?> response = sessionController.noLongerParticipate("invalid", "1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
     }
 }
