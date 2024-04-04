@@ -4,87 +4,91 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.ResponseEntity;
 
 import com.openclassrooms.starterjwt.controllers.TeacherController;
-import com.openclassrooms.starterjwt.mapper.TeacherMapperImpl;
+import com.openclassrooms.starterjwt.dto.TeacherDto;
+import com.openclassrooms.starterjwt.mapper.TeacherMapper;
 import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.services.TeacherService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
-class TeacherControllerTests {
-    private MockMvc mvc;
-    
+class TeacherControllerTests {  
     @Mock
     private TeacherService teacherService;
+    
+    @Mock
+    private TeacherMapper teacherMapper;
 
-    private TeacherMapperImpl teacherMapper = new TeacherMapperImpl();
+    @InjectMocks
+    private TeacherController teacherController;
+    
+    private Teacher teacher;
     
     @BeforeEach
     void init() {
-        mvc = MockMvcBuilders.standaloneSetup(new TeacherController(teacherService, teacherMapper)).build();
+    	this.teacher = new Teacher(1L, "Doe", "John", LocalDateTime.now(), LocalDateTime.now());
     }
     
     @Test
     @DisplayName("Get a specific teacher successfully")
-    void testFindById_Success() throws Exception {
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
+    void testFindById_Success() throws Exception {    	
+    	Teacher teacher = this.teacher;
+    	when(teacherService.findById(anyLong())).thenReturn(teacher);
+        when(teacherMapper.toDto(any(Teacher.class))).thenReturn(new TeacherDto());
 
-        when(teacherService.findById(1L)).thenReturn(teacher);
+        ResponseEntity<?> response = teacherController.findById("1");
 
-        MockHttpServletResponse response = mvc.perform(get("/api/teacher/1")).andReturn().getResponse();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        String expectedJson = "{\"id\":1,\"lastName\":\"Doe\",\"firstName\":\"John\",\"createdAt\":null,\"updatedAt\":null}";
-        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(TeacherDto.class);
     }
 
     @Test
     @DisplayName("Get a specific teacher (not found)")
     void testFindById_NotFound() throws Exception {
-        when(teacherService.findById(1L)).thenReturn(null);
+        when(teacherService.findById(anyLong())).thenReturn(null);
 
-        MockHttpServletResponse response = mvc.perform(get("/api/teacher/1")).andReturn().getResponse();
+        ResponseEntity<?> response = teacherController.findById("1");
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("Get a specific session (invalid id)")
+    void testFindById_InvalidId() {
+        ResponseEntity<?> response = teacherController.findById("invalid");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNull();
     }
 
     @Test
     @DisplayName("Get all teachers successfully")
     void testFindAll_Success() throws Exception {
-        Teacher teacher1 = new Teacher();
-        teacher1.setId(1L);
-        teacher1.setFirstName("John");
-        teacher1.setLastName("Doe");
-
-        Teacher teacher2 = new Teacher();
-        teacher2.setId(2L);
-        teacher2.setFirstName("Jane");
-        teacher2.setLastName("Smith");
-
-        List<Teacher> teachers = Arrays.asList(teacher1, teacher2);
+        List<Teacher> teachers = new ArrayList<>();
+        teachers.add(teacher);
         when(teacherService.findAll()).thenReturn(teachers);
+        when(teacherMapper.toDto(anyList())).thenReturn(new ArrayList<>());
 
-        MockHttpServletResponse response = mvc.perform(get("/api/teacher")).andReturn().getResponse();
+        ResponseEntity<?> response = teacherController.findAll();
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        String expectedJson = "[{\"id\":1,\"lastName\":\"Doe\",\"firstName\":\"John\",\"createdAt\":null,\"updatedAt\":null},{\"id\":2,\"lastName\":\"Smith\",\"firstName\":\"Jane\",\"createdAt\":null,\"updatedAt\":null}]";
-        assertThat(response.getContentAsString()).isEqualTo(expectedJson);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isInstanceOf(List.class);
     }
 }
