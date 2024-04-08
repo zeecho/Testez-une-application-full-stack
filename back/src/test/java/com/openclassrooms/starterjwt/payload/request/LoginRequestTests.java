@@ -1,6 +1,4 @@
-package com.openclassrooms.starterjwt.payload.response;
-
-import com.openclassrooms.starterjwt.payload.request.LoginRequest;
+package com.openclassrooms.starterjwt.payload.request;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

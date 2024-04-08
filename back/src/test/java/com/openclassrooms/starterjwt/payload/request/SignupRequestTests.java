@@ -1,4 +1,4 @@
-package com.openclassrooms.starterjwt.payload.response;
+package com.openclassrooms.starterjwt.payload.request;
 
 import com.openclassrooms.starterjwt.payload.request.SignupRequest;
 
