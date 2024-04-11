@@ -11,8 +11,7 @@ describe('Register spec', () => {
   });
 
   it('should navigate to login page on successful registration', () => {
-    cy.server();
-    cy.route('POST', '/api/auth/register', {}).as('register');
+    cy.intercept('POST', '/api/auth/register', {}).as('register');
 
     cy.get('button[type="submit"]').should('be.disabled');
 

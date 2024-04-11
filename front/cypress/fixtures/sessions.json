@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Morning Yoga",
+    "description": "Join us for a refreshing morning yoga session!",
+    "date": "2024-04-12T09:00:00Z",
+    "teacher_id": 1,
+    "users": [1, 2],
+    "createdAt": "2024-04-01T12:00:00Z",
+    "updatedAt": "2024-04-01T12:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Evening Meditation",
+    "description": "Relax and unwind with our evening meditation class.",
+    "date": "2024-04-12T18:00:00Z",
+    "teacher_id": 2,
+    "users": [3, 4],
+    "createdAt": "2024-04-02T12:00:00Z",
+    "updatedAt": "2024-04-02T12:00:00Z"
+  }
+]
