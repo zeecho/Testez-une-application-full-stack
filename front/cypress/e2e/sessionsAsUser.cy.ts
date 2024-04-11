@@ -24,31 +24,68 @@ describe('Creating, showing, editing sessions', () => {
   })
 
   it('should participate in a session', () => {
-    cy.intercept('GET', '/api/session/1', { fixture: 'session.json' })
+    const sessionData = {
+      "id": 1,
+      "name": "Morning Yoga",
+      "description": "Join us for a refreshing morning yoga session!",
+      "date": "2024-04-12T09:00:00Z",
+      "teacher_id": 1,
+      "users": [1, 2],
+      "createdAt": "2024-04-01T12:00:00Z",
+      "updatedAt": "2024-04-01T12:00:00Z"
+    };
+
+    cy.intercept('GET', '/api/session/1', { body: sessionData }).as('getSession');
 
     cy.get('.items .item').first().contains('button', 'Detail').click();
 
     cy.intercept('POST', '/api/session/1/participate/456', { statusCode: 200 }).as('participateSession');
-    
-    cy.get('button').should('contain.text', 'Participate');
 
-    cy.get('button').contains('Participate').click();
+    cy.wait('@getSession');
+    cy.get('.ml1').contains('2 attendees');
+    cy.get('button').should('contain.text', 'Participate').then( () => {
+      sessionData.users.push(456);
+      cy.intercept('GET', '/api/session/1', { body: sessionData });
+      cy.get('button').contains('Participate').click();
+    });
 
     cy.wait('@participateSession').then((interception) => {
       expect(interception.response.statusCode).to.equal(200);
+      cy.get('button').should('contain.text', 'Do not participate')
+      cy.get('.ml1').contains('3 attendees');
     });
   });
 
   it('should unparticipate in a session', () => {
+    const sessionData = {
+      "id": 1,
+      "name": "Morning Yoga",
+      "description": "Join us for a refreshing morning yoga session!",
+      "date": "2024-04-12T09:00:00Z",
+      "teacher_id": 1,
+      "users": [1, 2, 456],
+      "createdAt": "2024-04-01T12:00:00Z",
+      "updatedAt": "2024-04-01T12:00:00Z"
+    };
     // Using a session in which the user is considered to be participating in the session
-    cy.intercept('GET', '/api/session/1', { fixture: 'session2.json' })
+    cy.intercept('GET', '/api/session/1', { body: sessionData }).as('getSession');
 
     cy.get('.items .item').first().contains('button', 'Detail').click();
 
-    cy.intercept('POST', '/api/session/1/participate/456', { statusCode: 200 }).as('unparticipateSession');
+    cy.intercept('DELETE', '/api/session/1/participate/456', { statusCode: 200 }).as('unparticipateSession');
+    
+    cy.wait('@getSession');
+    cy.get('.ml1').contains('3 attendees');
+    cy.get('button').should('contain.text', 'Do not participate').then( () => {
+      sessionData.users.splice(2, 1);
+      cy.intercept('GET', '/api/session/1', { body: sessionData });
+      cy.get('button').contains('Do not participate').click();
+    });
 
-    cy.get('button').should('contain.text', 'Do not participate');
-
-    cy.get('button').contains('Do not participate').click();
+    cy.wait('@unparticipateSession').then((interception) => {
+      expect(interception.response.statusCode).to.equal(200);
+      cy.get('button').should('contain.text', 'Participate');
+      cy.get('.ml1').contains('2 attendees');
+    });
   });
 });
