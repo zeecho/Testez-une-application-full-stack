@@ -19,6 +19,19 @@ describe('Creating, showing, editing sessions', () => {
     cy.url().should('include', '/sessions');
   });
 
+  it('should allow deleting a session when "Delete" button is clicked', () => {
+    cy.intercept('DELETE', '/api/session/1', { statusCode: 200 }).as('deleteSession');
+
+    cy.get('.items .item').first().contains('button', 'Detail').click();
+
+    cy.contains('button', 'Delete').click();
+
+    cy.wait('@deleteSession').then((interception) => {
+      expect(interception.response.statusCode).to.equal(200);
+    });
+
+    cy.url().should('include', '/sessions');
+  });
 
   it('should allow editing session when "edit" button is clicked', () => {
     cy.get('.items .item').first().contains('button', 'Edit').click();
@@ -128,5 +141,4 @@ describe('Creating, showing, editing sessions', () => {
     cy.get('.mat-snack-bar-container').should('be.visible').contains('Session created !');
     cy.url().should('include', '/sessions');
   });
-
 });
