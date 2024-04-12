@@ -24,17 +24,16 @@ describe('Me Component', () => {
     });
   });
 
-  // it('should allow user to delete account', () => {
-  //   cy.intercept('DELETE', '/api/user/456').as('deleteUser');
+  it('should allow user to delete account', () => {
+    cy.intercept('DELETE', '/api/user/456').as('deleteUser');
 
-  //   cy.wait(['@userData']).then(() => {
-  //     cy.get('button').contains('Detail').click();
-  //     cy.wait('@deleteUser').then(() => {
-  //       cy.get('.mat-snack-bar-container').should('contain.text', 'Your account has been deleted');
-  //       cy.url().should('include', '/');
-  //     });
-  //   });
-  // });
+    cy.wait(['@userData']).then(() => {
+      cy.get('button').contains('Detail').click();
+      cy.wait('@deleteUser').then(() => {
+        cy.url().should('include', '/');
+      });
+    });
+  });
 
   it('should navigate back when back button is clicked', () => {
     cy.get('button').contains('arrow_back').click();
