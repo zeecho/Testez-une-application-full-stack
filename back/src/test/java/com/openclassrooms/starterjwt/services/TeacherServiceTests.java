@@ -33,18 +33,14 @@ class TeacherServiceTests {
     @Test
     @DisplayName("Getting all teachers (comparing size of array and some data)")
     public void testFindAll() {
-        // Mock data
         List<Teacher> teachers = new ArrayList<>();
         teachers.add(new Teacher(1L, "Doe", "John", LocalDateTime.now(), LocalDateTime.now()));
         teachers.add(new Teacher(2L, "Smith", "Jane", LocalDateTime.now(), LocalDateTime.now()));
 
-        // Mock the repository behavior
         when(teacherRepository.findAll()).thenReturn(teachers);
 
-        // Call the service method
         List<Teacher> result = teacherService.findAll();
 
-        // Assertions
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getFirstName()).isEqualTo("John");
         assertThat(result.get(1).getLastName()).isEqualTo("Smith");
@@ -53,16 +49,12 @@ class TeacherServiceTests {
     @Test
     @DisplayName("Retriving an existing Teacher through the service")
     public void testFindById_ExistingId_ReturnsTeacher() {
-        // Mock data
         Teacher teacher = new Teacher(1L, "Doe", "John", LocalDateTime.now(), LocalDateTime.now());
 
-        // Mock the repository behavior
         when(teacherRepository.findById(1L)).thenReturn(Optional.of(teacher));
 
-        // Call the service method
         Teacher result = teacherService.findById(1L);
 
-        // Assertions
         assertThat(result).isNotNull();
         assertThat(result.getLastName()).isEqualTo("Doe");
     }
@@ -70,15 +62,11 @@ class TeacherServiceTests {
     @Test
     @DisplayName("Checking we get NULL when trying to retrieve a non-existing teacher")
     public void testFindById_NonExistingId_ReturnsNull() {        
-    	// Mock data
         Long nonExistingTeacherId = 999L;
-        // Mock the repository behavior
         when(teacherRepository.findById(nonExistingTeacherId)).thenReturn(Optional.empty());
 
-        // Call the service method
         Teacher result = teacherService.findById(nonExistingTeacherId);
         
-        // Assertions
-        assertThat(result).isNull();
+                assertThat(result).isNull();
     }
 }

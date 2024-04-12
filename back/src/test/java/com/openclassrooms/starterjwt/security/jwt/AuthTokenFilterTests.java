@@ -94,4 +94,16 @@ class AuthTokenFilterTests {
         verify(filterChain).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
+    
+    @Test
+    @DisplayName("Test exception handling in AuthTokenFilter")
+    public void testDoFilterInternal_ExceptionHandling() throws Exception {
+        request.addHeader("Authorization", "Bearer fakeToken");
+        when(jwtUtils.validateJwtToken("fakeToken")).thenThrow(new RuntimeException("Token validation failed"));
+
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain).doFilter(request, response);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
 }

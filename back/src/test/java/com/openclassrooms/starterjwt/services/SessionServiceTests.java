@@ -14,8 +14,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.openclassrooms.starterjwt.exception.BadRequestException;
+import com.openclassrooms.starterjwt.exception.NotFoundException;
 import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.repository.SessionRepository;
@@ -145,5 +148,48 @@ class SessionServiceTests {
         sessionService.noLongerParticipate(sessionId, userId);
         
         verify(sessionRepository).save(session);
+    }
+    
+    @Test
+    @DisplayName("Participate in a non-existing session should throw NotFoundException")
+    void testParticipate_NonExistingSession_ThrowsNotFoundException() {
+        Long sessionId = 1L;
+        Long userId = 1L;
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        SessionService sessionService = new SessionService(sessionRepository, userRepository);
+
+        assertThatThrownBy(() -> sessionService.participate(sessionId, userId))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("No longer participate in a non-existing session should throw NotFoundException")
+    void testNoLongerParticipate_NonExistingSession_ThrowsNotFoundException() {
+        Long sessionId = 1L;
+        Long userId = 1L;
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        SessionService sessionService = new SessionService(sessionRepository, userRepository);
+
+        assertThatThrownBy(() -> sessionService.noLongerParticipate(sessionId, userId))
+                .isInstanceOf(NotFoundException.class);
+    }
+    
+    @Test
+    @DisplayName("No longer participate in a session not participated should throw BadRequestException")
+    void testNoLongerParticipate_NotParticipated_ThrowsBadRequestException() {
+        Long sessionId = 1L;
+        Long userId = 1L;
+        Session session = new Session(sessionId, "Test Session", new Date(), "Description", null, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now());
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        SessionService sessionService = new SessionService(sessionRepository, userRepository);
+
+        assertThatThrownBy(() -> sessionService.noLongerParticipate(sessionId, userId))
+                .isInstanceOf(BadRequestException.class);
     }
 }
